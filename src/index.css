@@ -1,0 +1,154 @@
+@import "tailwindcss";
+
+/* ============================================
+   Dear Diary — Design System (Tailwind v4)
+   ============================================ */
+
+@theme {
+  /* — Colors — */
+  --color-paper: #F4EEE0;
+  --color-paper-dark: #E8DFD0;
+  --color-paper-line: #D4CBBA;
+  --color-ink: #22314F;
+  --color-ink-light: #22314F66;
+  --color-ink-faint: #22314F22;
+  --color-accent: #B5443A;
+  --color-accent-light: #B5443A33;
+  --color-accent-dark: #943830;
+  --color-locked: #8B8B8B;
+  --color-overlay: #22314F88;
+
+  /* — Fonts — */
+  --font-typewriter: 'Special Elite', 'Courier New', monospace;
+  --font-serif: 'Lora', 'Georgia', serif;
+}
+
+/* ============================================
+   Base Styles
+   ============================================ */
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-serif);
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+/* ============================================
+   Paper Noise Texture Overlay
+   ============================================ */
+
+.paper-texture::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.045; /* Slightly increased for more noticeable tactile feel */
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 256px 256px;
+}
+
+/* ============================================
+   Scrollbar Styling
+   ============================================ */
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-paper-line);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-ink-light);
+}
+
+/* ============================================
+   Selection Color
+   ============================================ */
+
+::selection {
+  background: var(--color-accent-light);
+  color: var(--color-ink);
+}
+
+/* ============================================
+   Transitions & Animations
+   ============================================ */
+
+.screen-fade-enter {
+  animation: screenFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.page-turn-right {
+  animation: pageTurnRight 0.25s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.page-turn-left {
+  animation: pageTurnLeft 0.25s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes screenFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pageTurnRight {
+  from {
+    opacity: 0.5;
+    transform: translateX(12px) rotateY(-3deg);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) rotateY(0);
+  }
+}
+
+@keyframes pageTurnLeft {
+  from {
+    opacity: 0.5;
+    transform: translateX(-12px) rotateY(3deg);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) rotateY(0);
+  }
+}
+
+/* Tactile shadow helpers */
+.paper-shadow {
+  box-shadow: 0 4px 20px -2px rgba(34, 49, 79, 0.08), 0 2px 6px -1px rgba(34, 49, 79, 0.04);
+}
+
+.ink-stamp {
+  border: 2.5px double var(--color-accent);
+  color: var(--color-accent);
+  text-transform: uppercase;
+  font-family: var(--font-typewriter);
+  font-weight: bold;
+  transform: rotate(-10deg);
+  opacity: 0.75;
+}
