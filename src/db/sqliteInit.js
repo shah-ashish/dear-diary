@@ -18,9 +18,12 @@ export async function initDatabase() {
     // 1. Register Stencil component
     jeepSqlite(window)
 
-    // 2. Create and mount jeep-sqlite element
-    const jeepSqliteEl = document.createElement('jeep-sqlite')
-    document.body.appendChild(jeepSqliteEl)
+    // 2. Create and mount jeep-sqlite element if it doesn't exist
+    let jeepSqliteEl = document.querySelector('jeep-sqlite')
+    if (!jeepSqliteEl) {
+      jeepSqliteEl = document.createElement('jeep-sqlite')
+      document.body.appendChild(jeepSqliteEl)
+    }
     
     // Wait for the custom elements loader to register it
     await customElements.whenDefined('jeep-sqlite')
@@ -29,23 +32,34 @@ export async function initDatabase() {
     await sqliteConnection.initWebStore()
   }
 
-  // 4. Create and open connection
-  // dbName, encrypted, mode, version, readonly
-  const db = await sqliteConnection.createConnection(
-    DB_NAME,
-    false, // encrypted
-    'no-encryption',
-    1, // version
-    false // readonly
-  )
+  // 4. Safely create or retrieve database connection
+  const isConn = (await sqliteConnection.isConnection(DB_NAME, false)).result
+  let db
 
-  await db.open()
+  if (isConn) {
+    db = await sqliteConnection.retrieveConnection(DB_NAME, false)
+  } else {
+    db = await sqliteConnection.createConnection(
+      DB_NAME,
+      false, // encrypted
+      'no-encryption',
+      1, // version
+      false // readonly
+    )
+  }
+
+  // 5. Safely open database if it isn't already open
+  const isOpen = (await db.isDBOpen()).result
+  if (!isOpen) {
+    await db.open()
+  }
+
   dbInstance = db
 
-  // 5. Run table migrations
+  // 6. Run table migrations
   await runMigrations()
 
-  // 6. If platform is web, save data to IndexedDB immediately after migration
+  // 7. If platform is web, save data to IndexedDB immediately after migration
   if (platform === 'web') {
     await sqliteConnection.saveToStore(DB_NAME)
   }
