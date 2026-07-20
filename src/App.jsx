@@ -19,6 +19,7 @@ export default function App() {
   const [selectedDate, setSelectedDate] = useState(null)
   const [deleteTarget, setDeleteTarget] = useState(null) // date string or null
   const [todayDate, setTodayDate] = useState(() => getToday())
+  const [isLoading, setIsLoading] = useState(false)
 
   const {
     entryPreviews,
@@ -58,21 +59,23 @@ export default function App() {
     }
   }, [todayDate, screen, refreshEntryPreviews])
 
-  // ─── Navigation ─────────────────────────────────────────────
+  // ─── Navigation (Async Await to resolve race conditions) ────
 
   const navigate = useCallback(
-    (screenName, date = null) => {
+    async (screenName, date = null) => {
+      setIsLoading(true)
       if (screenName === 'write') {
-        loadTodayEntry()
+        await loadTodayEntry()
       }
       if (screenName === 'read' && date) {
-        loadEntry(date)
+        await loadEntry(date)
         setSelectedDate(date)
       }
       if (screenName === 'home') {
-        refreshEntryPreviews()
+        await refreshEntryPreviews()
       }
       setScreen(screenName)
+      setIsLoading(false)
     },
     [loadTodayEntry, loadEntry, refreshEntryPreviews]
   )
@@ -97,8 +100,8 @@ export default function App() {
   }, [])
 
   const handleDeleteConfirm = useCallback(
-    (date) => {
-      removeEntry(date)
+    async (date) => {
+      await removeEntry(date)
       setDeleteTarget(null)
     },
     [removeEntry]
@@ -115,49 +118,60 @@ export default function App() {
     <div className="paper-texture h-screen overflow-hidden relative flex flex-col justify-between">
       <main className={`relative z-10 flex-1 flex flex-col overflow-hidden ${showBottomNav ? 'pb-16' : ''}`}>
 
-        {/* Screen layout with fade slide enter animation triggered by screen change key */}
-        <div key={screen} className="screen-fade-enter flex-1 flex flex-col overflow-hidden">
-          {/* ── HOME ── */}
-          {screen === 'home' && (
-            <HomeList
-              entryPreviews={entryPreviews}
-              showDelete={showDelete}
-              onEntryTap={handleEntryTap}
-              onDelete={handleDeleteRequest}
-            />
-          )}
+        {/* Global Loading Spinner for database fetches */}
+        {isLoading ? (
+          <div className="flex-1 flex flex-col items-center justify-center bg-paper">
+            <svg className="animate-spin h-8 w-8 text-accent mb-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span className="font-serif text-xs text-ink-light italic">Opening pages...</span>
+          </div>
+        ) : (
+          /* Screen layout with fade slide enter animation triggered by screen change key */
+          <div key={screen} className="screen-fade-enter flex-1 flex flex-col overflow-hidden">
+            {/* ── HOME ── */}
+            {screen === 'home' && (
+              <HomeList
+                entryPreviews={entryPreviews}
+                showDelete={showDelete}
+                onEntryTap={handleEntryTap}
+                onDelete={handleDeleteRequest}
+              />
+            )}
 
-          {/* ── WRITE ── */}
-          {screen === 'write' && (
-            <WritePage
-              today={todayDate}
-              initialPages={currentPages}
-              onSave={saveAllPageContents}
-              onBack={() => navigate('home')}
-            />
-          )}
+            {/* ── WRITE ── */}
+            {screen === 'write' && (
+              <WritePage
+                today={todayDate}
+                initialPages={currentPages}
+                onSave={saveAllPageContents}
+                onBack={() => navigate('home')}
+              />
+            )}
 
-          {/* ── SETTINGS ── */}
-          {screen === 'settings' && (
-            <SettingsScreen
-              showDelete={showDelete}
-              onToggleDelete={toggleShowDelete}
-            />
-          )}
+            {/* ── SETTINGS ── */}
+            {screen === 'settings' && (
+              <SettingsScreen
+                showDelete={showDelete}
+                onToggleDelete={toggleShowDelete}
+              />
+            )}
 
-          {/* ── READ-ONLY VIEWER ── */}
-          {screen === 'read' && selectedDate && (
-            <ReadOnlyViewer
-              date={selectedDate}
-              pages={currentPages}
-              onBack={() => navigate('home')}
-            />
-          )}
-        </div>
+            {/* ── READ-ONLY VIEWER ── */}
+            {screen === 'read' && selectedDate && (
+              <ReadOnlyViewer
+                date={selectedDate}
+                pages={currentPages}
+                onBack={() => navigate('home')}
+              />
+            )}
+          </div>
+        )}
 
       </main>
 
-      {showBottomNav && (
+      {showBottomNav && !isLoading && (
         <BottomNav activeScreen={screen} onNavigate={navigate} />
       )}
 

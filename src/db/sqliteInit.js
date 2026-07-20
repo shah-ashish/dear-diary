@@ -32,7 +32,7 @@ export async function initDatabase() {
     await sqliteConnection.initWebStore()
   }
 
-  // 4. Safely create or retrieve database connection
+  // 5. Safely create or retrieve database connection
   const isConn = (await sqliteConnection.isConnection(DB_NAME, false)).result
   let db
 
@@ -48,7 +48,7 @@ export async function initDatabase() {
     )
   }
 
-  // 5. Safely open database if it isn't already open
+  // 6. Safely open database if it isn't already open
   const isOpen = (await db.isDBOpen()).result
   if (!isOpen) {
     await db.open()
@@ -56,10 +56,10 @@ export async function initDatabase() {
 
   dbInstance = db
 
-  // 6. Run table migrations
+  // 7. Run table migrations
   await runMigrations()
 
-  // 7. If platform is web, save data to IndexedDB immediately after migration
+  // 8. If platform is web, save data to IndexedDB immediately after migration
   if (platform === 'web') {
     await sqliteConnection.saveToStore(DB_NAME)
   }
