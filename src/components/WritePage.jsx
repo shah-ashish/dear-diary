@@ -73,7 +73,7 @@ export default function WritePage({ today, initialPages, onSave, onBack }) {
 
   // ─── Clean Save & Exit on Back ────────────────────────────
 
-  const handleBack = useCallback(() => {
+  const handleBack = useCallback(async () => {
     // On exit, clean up trailing empty pages (keep at least page 1)
     let cleanedPages = [...pages]
     while (cleanedPages.length > 1 && cleanedPages[cleanedPages.length - 1].trim() === '') {
@@ -86,7 +86,7 @@ export default function WritePage({ today, initialPages, onSave, onBack }) {
     }))
 
     // Save final cleaned array immediately, then navigate back
-    onSave(today, pagesToSave)
+    await onSave(today, pagesToSave)
     onBack()
   }, [pages, today, onSave, onBack])
 
