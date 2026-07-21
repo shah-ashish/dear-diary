@@ -37,6 +37,16 @@ jobs:
           distribution: 'zulu'
           java-version: '21'
 
+      - name: Ensure Fixed Debug Keystore
+        run: |
+          if [ ! -f android/app/debug.keystore ]; then
+            keytool -genkeypair -alias androiddebugkey -keypass android -keystore android/app/debug.keystore -storepass android -dname "CN=Android Debug,O=Android,C=US" -validity 10000 -keyalg RSA
+            echo "--- BASE64 KEYSTORE START ---"
+            base64 -w 0 android/app/debug.keystore
+            echo ""
+            echo "--- BASE64 KEYSTORE END ---"
+          fi
+
       - name: Sync Capacitor Android Project
         run: npx cap sync
 
