@@ -16,6 +16,7 @@ import { exportAllEntries } from '../utils/exportDiary'
 import { importAllEntries } from '../utils/importDiary'
 import { FONTS } from '../utils/fonts'
 import { THEMES } from '../utils/theme'
+import PinSetupModal from './PinSetupModal'
 
 export default function SettingsScreen({
   showDelete,
@@ -27,7 +28,11 @@ export default function SettingsScreen({
   themeMode,
   onUpdateThemeMode,
   onEntriesImported,
+  lockEnabled,
+  onEnableLock,
+  onDisableLock,
 }) {
+  const [showPinSetup, setShowPinSetup] = useState(false)
   // ─── Export State ───
   const [exportStatus, setExportStatus] = useState('idle') // 'idle' | 'exporting' | 'done' | 'error'
   const [exportProgress, setExportProgress] = useState('')
@@ -224,6 +229,65 @@ export default function SettingsScreen({
               )
             })}
           </div>
+        </div>
+
+        <div className="border-b border-paper-line/60" />
+
+        {/* ── Passcode Lock ── */}
+        <div>
+          <div className="flex items-center justify-between py-1">
+            <div className="flex-1 pr-4">
+              <p className="font-serif text-sm text-ink font-medium leading-tight flex items-center gap-1.5">
+                <span>🔒 Passcode Lock</span>
+                {lockEnabled && (
+                  <span className="text-[10px] bg-green-500/15 text-green-700 font-bold px-2 py-0.5 rounded-full uppercase">
+                    Active
+                  </span>
+                )}
+              </p>
+              <p className="font-serif text-xs text-ink-light mt-1 leading-relaxed">
+                Protect your diary entries with a 4-digit PIN lock.
+              </p>
+            </div>
+
+            {/* Toggle lock */}
+            <button
+              id="toggle-lock"
+              onClick={() => {
+                if (lockEnabled) {
+                  onDisableLock()
+                } else {
+                  setShowPinSetup(true)
+                }
+              }}
+              role="switch"
+              aria-checked={lockEnabled}
+              className={`
+                relative inline-flex items-center shrink-0
+                w-11 h-6 rounded-full cursor-pointer border-none
+                transition-colors duration-200 ease-in-out
+                ${lockEnabled ? 'bg-accent shadow-inner' : 'bg-paper-dark'}
+              `}
+            >
+              <span
+                className="inline-block w-5 h-5 rounded-full bg-paper shadow-md transition-transform duration-200 ease-in-out"
+                style={{
+                  transform: lockEnabled ? 'translateX(22px)' : 'translateX(2px)',
+                }}
+              />
+            </button>
+          </div>
+
+          {lockEnabled && (
+            <div className="mt-2 flex gap-2">
+              <button
+                onClick={() => setShowPinSetup(true)}
+                className="font-serif text-xs text-accent font-medium hover:underline cursor-pointer border-none bg-transparent"
+              >
+                Change PIN or Security Question
+              </button>
+            </div>
+          )}
         </div>
 
         <div className="border-b border-paper-line/60" />
@@ -443,6 +507,17 @@ export default function SettingsScreen({
           All data stays on your device. No cloud. No accounts.
         </p>
       </div>
+
+      {/* ── PIN Setup Modal ── */}
+      {showPinSetup && (
+        <PinSetupModal
+          onSave={async (pin, question, answer) => {
+            await onEnableLock(pin, question, answer)
+            setShowPinSetup(false)
+          }}
+          onCancel={() => setShowPinSetup(false)}
+        />
+      )}
     </div>
   )
 }

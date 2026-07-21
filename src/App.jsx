@@ -6,6 +6,7 @@ import ReadOnlyViewer from './components/ReadOnlyViewer'
 import SettingsScreen from './components/SettingsScreen'
 import DeleteConfirmModal from './components/DeleteConfirmModal'
 import UpdateBanner from './components/UpdateBanner'
+import LockScreen from './components/LockScreen'
 import useEntries from './hooks/useEntries'
 import { getToday, isToday } from './utils/date'
 import { checkForUpdate } from './utils/version'
@@ -14,7 +15,7 @@ import { checkForUpdate } from './utils/version'
  * App — Root component & screen router
  *
  * Manages screens, navigation, delete confirmation flow,
- * and distributes useEntries hook data to child components.
+ * passcode lock overlay, and distributes useEntries hook data.
  */
 export default function App() {
   const [screen, setScreen] = useState('home')
@@ -34,6 +35,8 @@ export default function App() {
     diaryName,
     writingFont,
     themeMode,
+    lockEnabled,
+    isLocked,
     refreshEntryPreviews,
     loadEntry,
     loadTodayEntry,
@@ -43,7 +46,25 @@ export default function App() {
     updateDiaryName,
     updateWritingFont,
     updateThemeMode,
+    enableLock,
+    disableLock,
+    unlockApp,
+    lockApp,
   } = useEntries()
+
+  // ─── Auto-lock on app background/visibility change ───────────
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        lockApp()
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
+  }, [lockApp])
 
   // ─── Check for app update on mount ──────────────────────────
   useEffect(() => {
@@ -200,6 +221,9 @@ export default function App() {
                 themeMode={themeMode}
                 onUpdateThemeMode={updateThemeMode}
                 onEntriesImported={refreshEntryPreviews}
+                lockEnabled={lockEnabled}
+                onEnableLock={enableLock}
+                onDisableLock={disableLock}
               />
             )}
 
@@ -227,6 +251,14 @@ export default function App() {
           date={deleteTarget}
           onConfirm={handleDeleteConfirm}
           onCancel={handleDeleteCancel}
+        />
+      )}
+
+      {/* ── Passcode Lock Overlay ── */}
+      {isLocked && (
+        <LockScreen
+          onUnlock={unlockApp}
+          diaryName={diaryName}
         />
       )}
     </div>

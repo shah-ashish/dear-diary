@@ -21,6 +21,7 @@ import { getToday } from '../utils/date'
 import { countChars } from '../utils/words'
 import { applyTheme } from '../utils/theme'
 import { FONTS, loadFont } from '../utils/fonts'
+import { isLockEnabled, setLockConfig, removeLockConfig } from '../utils/security'
 
 export default function useEntries() {
   // List of all dates that have entries (newest first)
@@ -37,6 +38,10 @@ export default function useEntries() {
   const [diaryName, setDiaryName] = useState('Dear Diary')
   const [writingFont, setWritingFont] = useState('special-elite')
   const [themeMode, setThemeMode] = useState('light')
+
+  // Passcode Lock State
+  const [lockEnabled, setLockEnabled] = useState(false)
+  const [isLocked, setIsLocked] = useState(false)
 
   // ─── Entry Dates & Previews Refreshers ──────────────────────
 
@@ -71,6 +76,13 @@ export default function useEntries() {
       const theme = await getSetting('themeMode', 'light')
       setThemeMode(theme)
       applyTheme(theme)
+
+      // Passcode lock initialization
+      const locked = await isLockEnabled()
+      setLockEnabled(locked)
+      if (locked) {
+        setIsLocked(true)
+      }
     }
     initData()
   }, [refreshEntryDates, refreshEntryPreviews])
@@ -169,6 +181,29 @@ export default function useEntries() {
     applyTheme(mode)
   }, [])
 
+  // ─── Passcode Lock Actions ──────────────────────────────────
+
+  const enableLock = useCallback(async (pin, question, answer) => {
+    await setLockConfig(pin, question, answer)
+    setLockEnabled(true)
+  }, [])
+
+  const disableLock = useCallback(async () => {
+    await removeLockConfig()
+    setLockEnabled(false)
+    setIsLocked(false)
+  }, [])
+
+  const unlockApp = useCallback(() => {
+    setIsLocked(false)
+  }, [])
+
+  const lockApp = useCallback(() => {
+    if (lockEnabled) {
+      setIsLocked(true)
+    }
+  }, [lockEnabled])
+
   // ─── Return ─────────────────────────────────────────────────
 
   return {
@@ -180,6 +215,8 @@ export default function useEntries() {
     diaryName,
     writingFont,
     themeMode,
+    lockEnabled,
+    isLocked,
 
     // Actions
     refreshEntryDates,
@@ -193,5 +230,9 @@ export default function useEntries() {
     updateDiaryName,
     updateWritingFont,
     updateThemeMode,
+    enableLock,
+    disableLock,
+    unlockApp,
+    lockApp,
   }
 }
