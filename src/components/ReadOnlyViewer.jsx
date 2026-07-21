@@ -8,10 +8,11 @@
 
 import { useState, useCallback, useEffect } from 'react'
 import { formatDisplayDate } from '../utils/date'
+import { getFontFamily } from '../utils/fonts'
 
 const LINE_HEIGHT = 32
 
-export default function ReadOnlyViewer({ date, pages, onBack }) {
+export default function ReadOnlyViewer({ date, pages, onBack, writingFont }) {
   const [currentPage, setCurrentPage] = useState(0)
   const [transitioning, setTransitioning] = useState(false)
   const [turnDirection, setTurnDirection] = useState('') // 'left' | 'right' | ''
@@ -109,8 +110,9 @@ export default function ReadOnlyViewer({ date, pages, onBack }) {
         {/* Content display */}
         <div className={`transition-all duration-200 ${transitioning ? 'opacity-0' : 'opacity-100'} ${animationClass}`}>
           <p
-            className="font-typewriter text-ink/75 whitespace-pre-wrap m-0"
+            className="text-ink/75 whitespace-pre-wrap m-0"
             style={{
+              fontFamily: getFontFamily(writingFont),
               paddingLeft: 'calc(11% + 16px)',
               paddingRight: '20px',
               paddingTop: '8px',

@@ -7,7 +7,7 @@
  */
 
 /** Current app version — bump this on each release tag */
-export const APP_VERSION = '1.0.0'
+export const APP_VERSION = '2.0.0'
 
 /** GitHub repo path for release checking */
 const GITHUB_REPO = 'shah-ashish/dear-diary'

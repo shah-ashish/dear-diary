@@ -69,7 +69,7 @@ export default function BottomNav({ activeScreen, onNavigate }) {
               {tab.icon}
             </span>
             <span className={`
-              text-[10px] font-serif tracking-wide leading-none mt-0.5
+              text-[10px] font-serif tracking-widest leading-none mt-0.5 uppercase
               ${isActive ? 'font-semibold' : 'font-normal'}
             `}>
               {tab.label}

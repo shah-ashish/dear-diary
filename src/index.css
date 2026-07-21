@@ -4,19 +4,47 @@
    Dear Diary — Design System (Tailwind v4)
    ============================================ */
 
-@theme {
-  /* — Colors — */
+:root {
   --color-paper: #F4EEE0;
   --color-paper-dark: #E8DFD0;
   --color-paper-line: #D4CBBA;
   --color-ink: #22314F;
-  --color-ink-light: #22314F66;
-  --color-ink-faint: #22314F22;
+  --color-ink-light: rgba(34, 49, 79, 0.4);
+  --color-ink-faint: rgba(34, 49, 79, 0.13);
   --color-accent: #B5443A;
-  --color-accent-light: #B5443A33;
+  --color-accent-light: rgba(181, 68, 58, 0.2);
   --color-accent-dark: #943830;
   --color-locked: #8B8B8B;
-  --color-overlay: #22314F88;
+  --color-overlay: rgba(34, 49, 79, 0.53);
+}
+
+[data-theme="dark"] {
+  --color-paper: #1A1B26;
+  --color-paper-dark: #242538;
+  --color-paper-line: #3B3E5B;
+  --color-ink: #E0E2EE;
+  --color-ink-light: rgba(224, 226, 238, 0.45);
+  --color-ink-faint: rgba(224, 226, 238, 0.15);
+  --color-accent: #E06C60;
+  --color-accent-light: rgba(224, 108, 96, 0.2);
+  --color-accent-dark: #C04C40;
+  --color-locked: #707590;
+  --color-overlay: rgba(16, 17, 26, 0.6);
+}
+
+@theme {
+  /* — Colors — */
+  --color-paper: var(--color-paper);
+  --color-paper-dark: var(--color-paper-dark);
+  --color-paper-line: var(--color-paper-line);
+  --color-ink: var(--color-ink);
+  --color-ink-light: var(--color-ink-light);
+  --color-ink-faint: var(--color-ink-faint);
+  --color-accent: var(--color-accent);
+  --color-accent-light: var(--color-accent-light);
+  --color-accent-dark: var(--color-accent-dark);
+  --color-locked: var(--color-locked);
+  --color-overlay: var(--color-overlay);
 
   /* — Fonts — */
   --font-typewriter: 'Special Elite', 'Courier New', monospace;

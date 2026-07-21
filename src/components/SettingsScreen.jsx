@@ -1,21 +1,49 @@
 /**
- * SettingsScreen — App settings page
+ * SettingsScreen — App settings & customization page
  *
  * Features:
- * - "Show delete option on Home" toggle (default OFF)
- * - "Download All Entries" export button with progress
- * Persisted via useEntries hook (SQLite settings table).
+ * - Custom Diary Name editor
+ * - Writing Font selector
+ * - Theme Mode toggle (Light / Dark / System)
+ * - "Show delete option on Home" toggle
+ * - "Download All Entries" export button (gold gradient)
+ * - "Import Entries" restore button (gold gradient)
  */
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import logo from '../assets/logo.png'
 import { exportAllEntries } from '../utils/exportDiary'
+import { importAllEntries } from '../utils/importDiary'
+import { FONTS } from '../utils/fonts'
+import { THEMES } from '../utils/theme'
 
-export default function SettingsScreen({ showDelete, onToggleDelete }) {
+export default function SettingsScreen({
+  showDelete,
+  onToggleDelete,
+  diaryName,
+  onUpdateDiaryName,
+  writingFont,
+  onUpdateWritingFont,
+  themeMode,
+  onUpdateThemeMode,
+  onEntriesImported,
+}) {
+  // ─── Export State ───
   const [exportStatus, setExportStatus] = useState('idle') // 'idle' | 'exporting' | 'done' | 'error'
   const [exportProgress, setExportProgress] = useState('')
-  const [exportResult, setExportResult] = useState(null) // { exported, skipped, total }
+  const [exportResult, setExportResult] = useState(null)
 
+  // ─── Import State ───
+  const [importStatus, setImportStatus] = useState('idle') // 'idle' | 'importing' | 'done' | 'error'
+  const [importProgress, setImportProgress] = useState('')
+  const [importResult, setImportResult] = useState(null)
+  const fileInputRef = useRef(null)
+
+  // ─── Diary Name Editing State ───
+  const [isEditingName, setIsEditingName] = useState(false)
+  const [nameInput, setNameInput] = useState(diaryName || 'Dear Diary')
+
+  // ─── Handlers ───
   const handleExport = async () => {
     setExportStatus('exporting')
     setExportProgress('Preparing export...')
@@ -28,8 +56,6 @@ export default function SettingsScreen({ showDelete, onToggleDelete }) {
 
       setExportResult(result)
       setExportStatus('done')
-
-      // Reset status after 5 seconds
       setTimeout(() => {
         setExportStatus('idle')
         setExportProgress('')
@@ -38,7 +64,6 @@ export default function SettingsScreen({ showDelete, onToggleDelete }) {
       console.error('Export failed:', err)
       setExportStatus('error')
       setExportProgress(`Export failed: ${err.message || 'Unknown error'}`)
-
       setTimeout(() => {
         setExportStatus('idle')
         setExportProgress('')
@@ -46,11 +71,73 @@ export default function SettingsScreen({ showDelete, onToggleDelete }) {
     }
   }
 
+  const handleImportClick = () => {
+    // If on web browser, trigger file input
+    if (fileInputRef.current) {
+      fileInputRef.current.click()
+    } else {
+      runImport()
+    }
+  }
+
+  const handleFileChange = async (e) => {
+    const files = e.target.files
+    if (files && files.length > 0) {
+      await runImport(files)
+    }
+    // reset input
+    if (fileInputRef.current) fileInputRef.current.value = ''
+  }
+
+  const runImport = async (webFiles = null) => {
+    setImportStatus('importing')
+    setImportProgress('Scanning for backup entries...')
+    setImportResult(null)
+
+    try {
+      const result = await importAllEntries((current, total, status) => {
+        setImportProgress(status)
+      }, webFiles)
+
+      setImportResult(result)
+      setImportStatus('done')
+      if (onEntriesImported) await onEntriesImported()
+
+      setTimeout(() => {
+        setImportStatus('idle')
+        setImportProgress('')
+      }, 5000)
+    } catch (err) {
+      console.error('Import failed:', err)
+      setImportStatus('error')
+      setImportProgress(`Import failed: ${err.message || 'Unknown error'}`)
+      setTimeout(() => {
+        setImportStatus('idle')
+        setImportProgress('')
+      }, 5000)
+    }
+  }
+
+  const handleSaveName = () => {
+    onUpdateDiaryName(nameInput)
+    setIsEditingName(false)
+  }
+
   return (
-    <div className="h-full flex flex-col overflow-hidden">
+    <div className="h-full flex flex-col overflow-hidden bg-paper text-ink">
+      {/* Hidden file input for web import */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileChange}
+        accept=".zip,.txt"
+        multiple
+        className="hidden"
+      />
+
       {/* ── Header ── */}
       <header className="flex items-center gap-3 px-5 pt-8 pb-4 shrink-0">
-        <img src={logo} alt="Dear Diary" className="w-10 h-10 drop-shadow-sm animate-pulse" />
+        <img src={logo} alt="Logo" className="w-10 h-10 drop-shadow-sm" />
         <div>
           <h1 className="font-serif text-xl text-ink font-semibold leading-tight tracking-wide">
             Settings
@@ -64,10 +151,117 @@ export default function SettingsScreen({ showDelete, onToggleDelete }) {
       {/* ── Divider ── */}
       <div className="mx-5 border-b border-paper-line shrink-0" />
 
-      {/* ── Settings List (Only content scrolls) ── */}
-      <div className="flex-1 overflow-y-auto px-5 py-4">
-        {/* ── Delete toggle ── */}
-        <div className="flex items-center justify-between py-4">
+      {/* ── Settings List ── */}
+      <div className="flex-1 overflow-y-auto px-5 py-4 space-y-6">
+
+        {/* ── 1. Custom Diary Name ── */}
+        <div>
+          <p className="font-serif text-xs uppercase tracking-wider text-ink-light font-bold mb-2">
+            Diary Title
+          </p>
+          {isEditingName ? (
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                value={nameInput}
+                onChange={(e) => setNameInput(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSaveName()}
+                className="flex-1 px-3 py-2 rounded-lg bg-paper-dark/60 border border-paper-line font-serif text-sm text-ink outline-none"
+                placeholder="Enter diary title..."
+                autoFocus
+              />
+              <button
+                onClick={handleSaveName}
+                className="px-3 py-2 rounded-lg bg-accent text-white font-serif text-xs font-semibold border-none cursor-pointer"
+              >
+                Save
+              </button>
+            </div>
+          ) : (
+            <div
+              onClick={() => {
+                setNameInput(diaryName)
+                setIsEditingName(true)
+              }}
+              className="flex items-center justify-between p-3 rounded-xl bg-paper-dark/40 border border-paper-line/50 cursor-pointer hover:bg-paper-dark/60 transition-all"
+            >
+              <span className="font-serif text-sm font-semibold text-ink">
+                {diaryName || 'Dear Diary'}
+              </span>
+              <span className="text-xs text-ink-light italic flex items-center gap-1">
+                Edit ✏️
+              </span>
+            </div>
+          )}
+        </div>
+
+        <div className="border-b border-paper-line/60" />
+
+        {/* ── 2. Theme Mode ── */}
+        <div>
+          <p className="font-serif text-xs uppercase tracking-wider text-ink-light font-bold mb-2">
+            Theme Mode
+          </p>
+          <div className="grid grid-cols-3 gap-2 p-1 rounded-xl bg-paper-dark/40 border border-paper-line/50">
+            {THEMES.map((theme) => {
+              const isActive = themeMode === theme.id
+              return (
+                <button
+                  key={theme.id}
+                  onClick={() => onUpdateThemeMode(theme.id)}
+                  className={`
+                    py-2 px-3 rounded-lg font-serif text-xs font-medium
+                    flex items-center justify-center gap-1.5 transition-all cursor-pointer border-none
+                    ${isActive
+                      ? 'bg-paper text-ink shadow-sm font-bold'
+                      : 'text-ink-light bg-transparent hover:text-ink'
+                    }
+                  `}
+                >
+                  <span>{theme.icon}</span>
+                  <span>{theme.name}</span>
+                </button>
+              )
+            })}
+          </div>
+        </div>
+
+        <div className="border-b border-paper-line/60" />
+
+        {/* ── 3. Writing Font ── */}
+        <div>
+          <p className="font-serif text-xs uppercase tracking-wider text-ink-light font-bold mb-2">
+            Writing Font
+          </p>
+          <div className="grid grid-cols-2 gap-2">
+            {FONTS.map((font) => {
+              const isActive = writingFont === font.id
+              return (
+                <button
+                  key={font.id}
+                  onClick={() => onUpdateWritingFont(font.id)}
+                  className={`
+                    p-3 rounded-xl text-left border transition-all cursor-pointer
+                    ${isActive
+                      ? 'bg-paper-dark/80 border-accent text-accent font-semibold shadow-sm'
+                      : 'bg-paper-dark/30 border-paper-line/50 text-ink-light hover:bg-paper-dark/50'
+                    }
+                  `}
+                >
+                  <p className="text-[11px] opacity-75 font-serif mb-1">{font.name}</p>
+                  <p className="text-sm truncate" style={{ fontFamily: font.family }}>
+                    The quick brown fox
+                  </p>
+                </button>
+              )
+            })}
+          </div>
+        </div>
+
+        <div className="border-b border-paper-line/60" />
+
+        {/* ── 4. Delete Toggle ── */}
+        <div className="flex items-center justify-between py-1">
           <div className="flex-1 pr-4">
             <p className="font-serif text-sm text-ink font-medium leading-tight">
               Show delete option on Home
@@ -77,7 +271,6 @@ export default function SettingsScreen({ showDelete, onToggleDelete }) {
             </p>
           </div>
 
-          {/* Toggle switch */}
           <button
             id="toggle-delete"
             onClick={onToggleDelete}
@@ -101,8 +294,8 @@ export default function SettingsScreen({ showDelete, onToggleDelete }) {
 
         <div className="border-b border-paper-line/60" />
 
-        {/* ── Download / Export ── */}
-        <div className="py-4">
+        {/* ── 5. Download All Entries (Gold Gradient) ── */}
+        <div>
           <p className="font-serif text-sm text-ink font-medium leading-tight">
             Download All Entries
           </p>
@@ -110,20 +303,22 @@ export default function SettingsScreen({ showDelete, onToggleDelete }) {
             Export all diary entries as text files to your device. Existing files won't be overwritten.
           </p>
 
-          {/* Download button */}
           <button
             id="export-btn"
             onClick={handleExport}
             disabled={exportStatus === 'exporting'}
             className={`
-              mt-3 w-full py-2.5 rounded-lg font-serif text-sm font-semibold
-              border cursor-pointer transition-all duration-200
-              flex items-center justify-center gap-2
+              mt-3 w-full py-3 rounded-xl font-serif text-sm font-bold
+              border-none cursor-pointer transition-all duration-200
+              flex items-center justify-center gap-2 uppercase tracking-wider
               ${exportStatus === 'exporting'
-                ? 'bg-paper-dark/50 text-ink-light border-paper-line cursor-not-allowed'
-                : 'bg-accent/10 text-accent border-accent/30 hover:bg-accent/20 active:scale-[0.98]'
+                ? 'bg-paper-dark/50 text-ink-light cursor-not-allowed'
+                : 'text-white hover:brightness-110 active:scale-[0.98] shadow-md'
               }
             `}
+            style={exportStatus !== 'exporting' ? {
+              background: 'linear-gradient(135deg, #C9A96E 0%, #A07D3A 50%, #8B6914 100%)',
+            } : undefined}
           >
             {exportStatus === 'exporting' ? (
               <>
@@ -135,8 +330,7 @@ export default function SettingsScreen({ showDelete, onToggleDelete }) {
               </>
             ) : (
               <>
-                {/* Download icon */}
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
                   <polyline points="7 10 12 15 17 10" />
                   <line x1="12" y1="15" x2="12" y2="3" />
@@ -146,7 +340,6 @@ export default function SettingsScreen({ showDelete, onToggleDelete }) {
             )}
           </button>
 
-          {/* Progress / Result status */}
           {exportProgress && (
             <p className={`font-serif text-xs mt-2 leading-relaxed ${
               exportStatus === 'error' ? 'text-accent' :
@@ -157,15 +350,12 @@ export default function SettingsScreen({ showDelete, onToggleDelete }) {
             </p>
           )}
 
-          {/* Result summary */}
           {exportResult && exportStatus === 'done' && (
-            <div className="mt-2 px-3 py-2 rounded-lg bg-green-50 border border-green-200">
-              <p className="font-serif text-xs text-green-800">
+            <div className="mt-2 px-3 py-2 rounded-lg bg-green-500/10 border border-green-500/30">
+              <p className="font-serif text-xs text-green-700 font-medium">
                 ✓ {exportResult.exported} page{exportResult.exported !== 1 ? 's' : ''} exported
                 {exportResult.skipped > 0 && (
-                  <span className="text-green-600">
-                    {' '}· {exportResult.skipped} already existed
-                  </span>
+                  <span className="opacity-80"> · {exportResult.skipped} already existed</span>
                 )}
               </p>
             </div>
@@ -173,12 +363,81 @@ export default function SettingsScreen({ showDelete, onToggleDelete }) {
         </div>
 
         <div className="border-b border-paper-line/60" />
+
+        {/* ── 6. Import / Restore Entries (Gold Gradient) ── */}
+        <div>
+          <p className="font-serif text-sm text-ink font-medium leading-tight">
+            Import Entries
+          </p>
+          <p className="font-serif text-xs text-ink-light mt-1 leading-relaxed">
+            Restore diary entries from your device's DearDiary backup folder.
+          </p>
+
+          <button
+            id="import-btn"
+            onClick={handleImportClick}
+            disabled={importStatus === 'importing'}
+            className={`
+              mt-3 w-full py-3 rounded-xl font-serif text-sm font-bold
+              border-none cursor-pointer transition-all duration-200
+              flex items-center justify-center gap-2 uppercase tracking-wider
+              ${importStatus === 'importing'
+                ? 'bg-paper-dark/50 text-ink-light cursor-not-allowed'
+                : 'text-white hover:brightness-110 active:scale-[0.98] shadow-md'
+              }
+            `}
+            style={importStatus !== 'importing' ? {
+              background: 'linear-gradient(135deg, #A07D3A 0%, #8B6914 50%, #684F0D 100%)',
+            } : undefined}
+          >
+            {importStatus === 'importing' ? (
+              <>
+                <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Importing...
+              </>
+            ) : (
+              <>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                  <polyline points="17 8 12 3 7 8" />
+                  <line x1="12" y1="3" x2="12" y2="15" />
+                </svg>
+                Import
+              </>
+            )}
+          </button>
+
+          {importProgress && (
+            <p className={`font-serif text-xs mt-2 leading-relaxed ${
+              importStatus === 'error' ? 'text-accent' :
+              importStatus === 'done' ? 'text-green-700' :
+              'text-ink-light'
+            }`}>
+              {importProgress}
+            </p>
+          )}
+
+          {importResult && importStatus === 'done' && (
+            <div className="mt-2 px-3 py-2 rounded-lg bg-green-500/10 border border-green-500/30">
+              <p className="font-serif text-xs text-green-700 font-medium">
+                ✓ {importResult.imported} page{importResult.imported !== 1 ? 's' : ''} imported
+                {importResult.skipped > 0 && (
+                  <span className="opacity-80"> · {importResult.skipped} already in app</span>
+                )}
+              </p>
+            </div>
+          )}
+        </div>
+
       </div>
 
-      {/* ── App Info ── */}
+      {/* ── Footer ── */}
       <div className="shrink-0 px-5 py-6 text-center border-t border-paper-line/20 bg-paper/50">
         <p className="font-serif text-[10px] text-ink-faint">
-          Dear Diary — Your personal, offline notebook
+          {diaryName || 'Dear Diary'} — v2.0.0
         </p>
         <p className="font-serif text-[10px] text-ink-faint mt-0.5">
           All data stays on your device. No cloud. No accounts.

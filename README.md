@@ -9,13 +9,17 @@ A personal, offline-only diary app with a warm notebook & typewriter aesthetic. 
 ## ✨ Features
 
 - **Daily Entries** — One entry per calendar date, written on paginated 1200-character pages
-- **Ruled Paper Editor** — Typewriter-style writing on lined notebook paper with a red margin rule
-- **Auto-Save** — Your writing is saved automatically as you type
-- **Permanent Lock** — Past entries become read-only at midnight, preserving your memories exactly as written
-- **Export / Download** — Download all entries as `.txt` files to your device (incremental — skips files already exported)
-- **Update Notifications** — Get notified in-app when a new version is available on GitHub Releases
-- **Beautiful Aesthetic** — Warm cream paper, ink-navy text, brick-red accents, paper grain texture, and page-turn transitions
-- **Fully Offline** — Zero network requests (except the optional update check). No analytics, no telemetry
+- **Ruled Paper Editor** — Notebook paper editor with lined rules, red margin line, and page-turn transitions
+- **Free Page Navigation** — Add new pages anytime while writing without waiting for character limits
+- **Custom Diary Title** — Rename your diary from Settings (e.g. "My Journal")
+- **Font Picker** — Choose your preferred writing font from 6 curated Google Fonts
+- **Theme Engine** — Toggle between ☀️ Light, 🌙 Dark, and 💻 System theme modes
+- **Import & Restore** — Restore diary entries from your device's `DearDiary/` backup folder
+- **Export & Download** — Download all entries as `.txt` files (incremental — skips existing backups)
+- **Auto-Save** — Writing is saved automatically as you type
+- **Permanent Lock** — Past entries become locked and read-only at midnight
+- **Update Notifications** — In-app banner when a new release is available on GitHub
+- **Fully Offline** — Private, local storage with no cloud or tracking
 
 ---
 

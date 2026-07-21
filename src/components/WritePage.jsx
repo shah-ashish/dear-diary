@@ -13,10 +13,11 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { formatDisplayDate } from '../utils/date'
 import { countChars, truncateToCharLimit, CHAR_LIMIT } from '../utils/words'
+import { getFontFamily } from '../utils/fonts'
 
 const LINE_HEIGHT = 32 // px — must match the ruled-line spacing
 
-export default function WritePage({ today, initialPages, onSave, onBack }) {
+export default function WritePage({ today, initialPages, onSave, onBack, writingFont }) {
   // ─── State ────────────────────────────────────────────────
   const [pages, setPages] = useState(() =>
     initialPages.length > 0
@@ -210,8 +211,9 @@ export default function WritePage({ today, initialPages, onSave, onBack }) {
             onChange={handleInput}
             placeholder={currentPage === 0 ? 'Start writing your thoughts...' : 'Continue writing...'}
             spellCheck={true}
-            className="w-full h-full resize-none border-none outline-none font-typewriter text-ink caret-accent placeholder:text-ink-light placeholder:italic"
+            className="w-full h-full resize-none border-none outline-none text-ink caret-accent placeholder:text-ink-light placeholder:italic"
             style={{
+              fontFamily: getFontFamily(writingFont),
               paddingLeft: 'calc(11% + 16px)',
               paddingRight: '20px',
               paddingTop: '8px',
@@ -235,8 +237,8 @@ export default function WritePage({ today, initialPages, onSave, onBack }) {
 
       {/* ── Bottom Controls ── */}
       <footer className="shrink-0 border-t border-paper-line bg-paper/95 backdrop-blur-sm z-20">
-        {/* Char limit reached — Next Page CTA */}
-        {atLimit && isLastPage && (
+        {/* Next Page CTA — always visible on last page */}
+        {isLastPage && (
           <div className="px-4 pt-3">
             <button
               id="next-page-cta"
@@ -246,7 +248,7 @@ export default function WritePage({ today, initialPages, onSave, onBack }) {
                          hover:bg-accent/20 transition-all duration-200
                          flex items-center justify-center gap-2"
             >
-              Continue on Next Page
+              {atLimit ? 'Continue on Next Page' : 'Next Page'}
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="9 6 15 12 9 18" />
               </svg>

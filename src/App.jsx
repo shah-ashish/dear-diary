@@ -31,12 +31,18 @@ export default function App() {
     entryPreviews,
     currentPages,
     showDelete,
+    diaryName,
+    writingFont,
+    themeMode,
     refreshEntryPreviews,
     loadEntry,
     loadTodayEntry,
     saveAllPageContents,
     removeEntry,
     toggleShowDelete,
+    updateDiaryName,
+    updateWritingFont,
+    updateThemeMode,
   } = useEntries()
 
   // ─── Check for app update on mount ──────────────────────────
@@ -162,6 +168,7 @@ export default function App() {
                   />
                 )}
                 <HomeList
+                  diaryName={diaryName}
                   entryPreviews={entryPreviews}
                   showDelete={showDelete}
                   onEntryTap={handleEntryTap}
@@ -175,6 +182,7 @@ export default function App() {
               <WritePage
                 today={todayDate}
                 initialPages={currentPages}
+                writingFont={writingFont}
                 onSave={saveAllPageContents}
                 onBack={() => navigate('home')}
               />
@@ -185,6 +193,13 @@ export default function App() {
               <SettingsScreen
                 showDelete={showDelete}
                 onToggleDelete={toggleShowDelete}
+                diaryName={diaryName}
+                onUpdateDiaryName={updateDiaryName}
+                writingFont={writingFont}
+                onUpdateWritingFont={updateWritingFont}
+                themeMode={themeMode}
+                onUpdateThemeMode={updateThemeMode}
+                onEntriesImported={refreshEntryPreviews}
               />
             )}
 
@@ -193,6 +208,7 @@ export default function App() {
               <ReadOnlyViewer
                 date={selectedDate}
                 pages={currentPages}
+                writingFont={writingFont}
                 onBack={() => navigate('home')}
               />
             )}

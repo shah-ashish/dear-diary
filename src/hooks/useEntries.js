@@ -19,6 +19,8 @@ import {
 } from '../db/storage'
 import { getToday } from '../utils/date'
 import { countChars } from '../utils/words'
+import { applyTheme } from '../utils/theme'
+import { FONTS, loadFont } from '../utils/fonts'
 
 export default function useEntries() {
   // List of all dates that have entries (newest first)
@@ -32,6 +34,9 @@ export default function useEntries() {
 
   // Settings
   const [showDelete, setShowDeleteState] = useState(false)
+  const [diaryName, setDiaryName] = useState('Dear Diary')
+  const [writingFont, setWritingFont] = useState('special-elite')
+  const [themeMode, setThemeMode] = useState('light')
 
   // ─── Entry Dates & Previews Refreshers ──────────────────────
 
@@ -53,6 +58,19 @@ export default function useEntries() {
       await refreshEntryPreviews()
       const showDel = await getSetting('showDelete', false)
       setShowDeleteState(showDel)
+
+      // Load custom settings
+      const name = await getSetting('diaryName', 'Dear Diary')
+      setDiaryName(name)
+
+      const fontId = await getSetting('writingFont', 'special-elite')
+      setWritingFont(fontId)
+      const font = FONTS.find(f => f.id === fontId)
+      if (font) await loadFont(font)
+
+      const theme = await getSetting('themeMode', 'light')
+      setThemeMode(theme)
+      applyTheme(theme)
     }
     initData()
   }, [refreshEntryDates, refreshEntryPreviews])
@@ -131,14 +149,37 @@ export default function useEntries() {
     setShowDeleteState(next)
   }, [])
 
+  const updateDiaryName = useCallback(async (name) => {
+    const trimmed = (name || '').trim() || 'Dear Diary'
+    await setSetting('diaryName', trimmed)
+    setDiaryName(trimmed)
+  }, [])
+
+  const updateWritingFont = useCallback(async (fontId) => {
+    const font = FONTS.find(f => f.id === fontId)
+    if (!font) return
+    await loadFont(font)
+    await setSetting('writingFont', fontId)
+    setWritingFont(fontId)
+  }, [])
+
+  const updateThemeMode = useCallback(async (mode) => {
+    await setSetting('themeMode', mode)
+    setThemeMode(mode)
+    applyTheme(mode)
+  }, [])
+
   // ─── Return ─────────────────────────────────────────────────
 
   return {
     // State
-    entryDates,       // string[] — sorted newest first
-    entryPreviews,    // {date, preview, pageCount}[] — for Home list
-    currentPages,     // page objects for loaded entry
-    showDelete,       // boolean — settings toggle
+    entryDates,
+    entryPreviews,
+    currentPages,
+    showDelete,
+    diaryName,
+    writingFont,
+    themeMode,
 
     // Actions
     refreshEntryDates,
@@ -149,5 +190,8 @@ export default function useEntries() {
     saveAllPageContents,
     removeEntry,
     toggleShowDelete,
+    updateDiaryName,
+    updateWritingFont,
+    updateThemeMode,
   }
 }
