@@ -189,19 +189,7 @@ export default function WritePage({ today, initialPages, onSave, onBack }) {
       </header>
 
       {/* ── Ruled Paper Editor ── */}
-      <div
-        className="flex-1 relative overflow-hidden"
-        style={{
-          backgroundImage: `repeating-linear-gradient(
-            transparent,
-            transparent ${LINE_HEIGHT - 1}px,
-            #D4CBBA ${LINE_HEIGHT - 1}px,
-            #D4CBBA ${LINE_HEIGHT}px
-          )`,
-          backgroundSize: `100% ${LINE_HEIGHT}px`,
-          backgroundPosition: '0 8px',
-        }}
-      >
+      <div className="flex-1 relative overflow-hidden">
         {/* Red margin line */}
         <div
           className="absolute top-0 bottom-0 z-10 pointer-events-none"
@@ -213,7 +201,7 @@ export default function WritePage({ today, initialPages, onSave, onBack }) {
           }}
         />
 
-        {/* Textarea with direction-based turn animations */}
+        {/* Textarea with ruled lines ON the textarea so they scroll with text */}
         <div className={`h-full transition-all duration-200 ${transitioning ? 'opacity-0' : 'opacity-100'} ${animationClass}`}>
           <textarea
             ref={textareaRef}
@@ -222,7 +210,7 @@ export default function WritePage({ today, initialPages, onSave, onBack }) {
             onChange={handleInput}
             placeholder={currentPage === 0 ? 'Start writing your thoughts...' : 'Continue writing...'}
             spellCheck={true}
-            className="w-full h-full resize-none border-none outline-none bg-transparent font-typewriter text-ink caret-accent placeholder:text-ink-light placeholder:italic"
+            className="w-full h-full resize-none border-none outline-none font-typewriter text-ink caret-accent placeholder:text-ink-light placeholder:italic"
             style={{
               paddingLeft: 'calc(11% + 16px)',
               paddingRight: '20px',
@@ -230,6 +218,16 @@ export default function WritePage({ today, initialPages, onSave, onBack }) {
               paddingBottom: '80px',
               lineHeight: `${LINE_HEIGHT}px`,
               fontSize: '17px',
+              backgroundImage: `repeating-linear-gradient(
+                transparent,
+                transparent ${LINE_HEIGHT - 1}px,
+                #D4CBBA ${LINE_HEIGHT - 1}px,
+                #D4CBBA ${LINE_HEIGHT}px
+              )`,
+              backgroundSize: `100% ${LINE_HEIGHT}px`,
+              backgroundPosition: '0 8px',
+              backgroundAttachment: 'local',
+              backgroundColor: 'transparent',
             }}
           />
         </div>

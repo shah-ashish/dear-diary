@@ -1,7 +1,7 @@
 {
   "name": "dairy",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -13,8 +13,10 @@
     "@capacitor-community/sqlite": "^8.1.0",
     "@capacitor/android": "^8.4.2",
     "@capacitor/core": "^8.4.2",
+    "@capacitor/filesystem": "^8.1.2",
     "@tailwindcss/vite": "^4.3.3",
     "jeep-sqlite": "^2.8.0",
+    "jszip": "^3.10.1",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "sql.js": "1.11.0",

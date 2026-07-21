@@ -5,8 +5,10 @@ import WritePage from './components/WritePage'
 import ReadOnlyViewer from './components/ReadOnlyViewer'
 import SettingsScreen from './components/SettingsScreen'
 import DeleteConfirmModal from './components/DeleteConfirmModal'
+import UpdateBanner from './components/UpdateBanner'
 import useEntries from './hooks/useEntries'
 import { getToday, isToday } from './utils/date'
+import { checkForUpdate } from './utils/version'
 
 /**
  * App — Root component & screen router
@@ -20,6 +22,10 @@ export default function App() {
   const [deleteTarget, setDeleteTarget] = useState(null) // date string or null
   const [todayDate, setTodayDate] = useState(() => getToday())
   const [isLoading, setIsLoading] = useState(false)
+  const [updateInfo, setUpdateInfo] = useState(null) // { hasUpdate, latestVersion, downloadUrl }
+  const [updateDismissed, setUpdateDismissed] = useState(
+    () => sessionStorage.getItem('update_dismissed') === 'true'
+  )
 
   const {
     entryPreviews,
@@ -32,6 +38,20 @@ export default function App() {
     removeEntry,
     toggleShowDelete,
   } = useEntries()
+
+  // ─── Check for app update on mount ──────────────────────────
+  useEffect(() => {
+    checkForUpdate().then((result) => {
+      if (result?.hasUpdate) {
+        setUpdateInfo(result)
+      }
+    })
+  }, [])
+
+  const handleDismissUpdate = useCallback(() => {
+    setUpdateDismissed(true)
+    sessionStorage.setItem('update_dismissed', 'true')
+  }, [])
 
   // ─── Midnight Rollover Check ────────────────────────────────
   useEffect(() => {
@@ -132,12 +152,22 @@ export default function App() {
           <div key={screen} className="screen-fade-enter flex-1 flex flex-col overflow-hidden">
             {/* ── HOME ── */}
             {screen === 'home' && (
-              <HomeList
-                entryPreviews={entryPreviews}
-                showDelete={showDelete}
-                onEntryTap={handleEntryTap}
-                onDelete={handleDeleteRequest}
-              />
+              <>
+                {/* Update notification banner */}
+                {updateInfo?.hasUpdate && !updateDismissed && (
+                  <UpdateBanner
+                    version={updateInfo.latestVersion}
+                    downloadUrl={updateInfo.downloadUrl}
+                    onDismiss={handleDismissUpdate}
+                  />
+                )}
+                <HomeList
+                  entryPreviews={entryPreviews}
+                  showDelete={showDelete}
+                  onEntryTap={handleEntryTap}
+                  onDelete={handleDeleteRequest}
+                />
+              </>
             )}
 
             {/* ── WRITE ── */}
