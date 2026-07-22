@@ -43,6 +43,10 @@ export default function useEntries() {
   const [lockEnabled, setLockEnabled] = useState(false)
   const [isLocked, setIsLocked] = useState(false)
 
+  // Storage error state
+  const [storageError, setStorageError] = useState(null)
+  const clearStorageError = useCallback(() => setStorageError(null), [])
+
   // ─── Entry Dates & Previews Refreshers ──────────────────────
 
   const refreshEntryDates = useCallback(async () => {
@@ -116,10 +120,17 @@ export default function useEntries() {
 
   const savePageContent = useCallback(
     async (dateStr, pageNumber, content) => {
-      const wc = countChars(content)
-      await savePage(dateStr, pageNumber, content, wc)
-      await refreshEntryDates()
-      await refreshEntryPreviews()
+      try {
+        setStorageError(null)
+        const wc = countChars(content)
+        await savePage(dateStr, pageNumber, content, wc)
+        await refreshEntryDates()
+        await refreshEntryPreviews()
+      } catch (err) {
+        console.error('Failed to save page:', err)
+        setStorageError('Failed to save entry page.')
+        throw err
+      }
     },
     [refreshEntryDates, refreshEntryPreviews]
   )
@@ -128,14 +139,21 @@ export default function useEntries() {
 
   const saveAllPageContents = useCallback(
     async (dateStr, pages) => {
-      const pagesWithCounts = pages.map((p) => ({
-        page_number: p.page_number,
-        content: p.content,
-        word_count: countChars(p.content),
-      }))
-      await saveAllPages(dateStr, pagesWithCounts)
-      await refreshEntryDates()
-      await refreshEntryPreviews()
+      try {
+        setStorageError(null)
+        const pagesWithCounts = pages.map((p) => ({
+          page_number: p.page_number,
+          content: p.content,
+          word_count: countChars(p.content),
+        }))
+        await saveAllPages(dateStr, pagesWithCounts)
+        await refreshEntryDates()
+        await refreshEntryPreviews()
+      } catch (err) {
+        console.error('Failed to save entry pages:', err)
+        setStorageError('Failed to save diary entry. Please check storage space.')
+        throw err
+      }
     },
     [refreshEntryDates, refreshEntryPreviews]
   )
@@ -144,10 +162,17 @@ export default function useEntries() {
 
   const removeEntry = useCallback(
     async (dateStr) => {
-      await storageDeleteEntry(dateStr)
-      setCurrentPages([])
-      await refreshEntryDates()
-      await refreshEntryPreviews()
+      try {
+        setStorageError(null)
+        await storageDeleteEntry(dateStr)
+        setCurrentPages([])
+        await refreshEntryDates()
+        await refreshEntryPreviews()
+      } catch (err) {
+        console.error('Failed to delete entry:', err)
+        setStorageError('Failed to delete diary entry.')
+        throw err
+      }
     },
     [refreshEntryDates, refreshEntryPreviews]
   )
@@ -155,43 +180,73 @@ export default function useEntries() {
   // ─── Settings ───────────────────────────────────────────────
 
   const toggleShowDelete = useCallback(async () => {
-    const current = await getSetting('showDelete', false)
-    const next = !current
-    await setSetting('showDelete', next)
-    setShowDeleteState(next)
+    try {
+      const current = await getSetting('showDelete', false)
+      const next = !current
+      await setSetting('showDelete', next)
+      setShowDeleteState(next)
+    } catch (err) {
+      console.error('Failed to toggle delete setting:', err)
+      setStorageError('Failed to save setting.')
+    }
   }, [])
 
   const updateDiaryName = useCallback(async (name) => {
-    const trimmed = (name || '').trim() || 'Dear Diary'
-    await setSetting('diaryName', trimmed)
-    setDiaryName(trimmed)
+    try {
+      const trimmed = (name || '').trim() || 'Dear Diary'
+      await setSetting('diaryName', trimmed)
+      setDiaryName(trimmed)
+    } catch (err) {
+      console.error('Failed to update diary name:', err)
+      setStorageError('Failed to save diary name.')
+    }
   }, [])
 
   const updateWritingFont = useCallback(async (fontId) => {
-    const font = FONTS.find(f => f.id === fontId)
-    if (!font) return
-    await loadFont(font)
-    await setSetting('writingFont', fontId)
-    setWritingFont(fontId)
+    try {
+      const font = FONTS.find(f => f.id === fontId)
+      if (!font) return
+      await loadFont(font)
+      await setSetting('writingFont', fontId)
+      setWritingFont(fontId)
+    } catch (err) {
+      console.error('Failed to update font:', err)
+      setStorageError('Failed to save font setting.')
+    }
   }, [])
 
   const updateThemeMode = useCallback(async (mode) => {
-    await setSetting('themeMode', mode)
-    setThemeMode(mode)
-    applyTheme(mode)
+    try {
+      await setSetting('themeMode', mode)
+      setThemeMode(mode)
+      applyTheme(mode)
+    } catch (err) {
+      console.error('Failed to update theme mode:', err)
+      setStorageError('Failed to save theme setting.')
+    }
   }, [])
 
   // ─── Passcode Lock Actions ──────────────────────────────────
 
   const enableLock = useCallback(async (pin, question, answer) => {
-    await setLockConfig(pin, question, answer)
-    setLockEnabled(true)
+    try {
+      await setLockConfig(pin, question, answer)
+      setLockEnabled(true)
+    } catch (err) {
+      console.error('Failed to enable lock:', err)
+      setStorageError('Failed to save passcode lock settings.')
+    }
   }, [])
 
   const disableLock = useCallback(async () => {
-    await removeLockConfig()
-    setLockEnabled(false)
-    setIsLocked(false)
+    try {
+      await removeLockConfig()
+      setLockEnabled(false)
+      setIsLocked(false)
+    } catch (err) {
+      console.error('Failed to disable lock:', err)
+      setStorageError('Failed to remove passcode lock.')
+    }
   }, [])
 
   const unlockApp = useCallback(() => {
@@ -217,8 +272,10 @@ export default function useEntries() {
     themeMode,
     lockEnabled,
     isLocked,
+    storageError,
 
     // Actions
+    clearStorageError,
     refreshEntryDates,
     refreshEntryPreviews,
     loadEntry,
@@ -236,3 +293,4 @@ export default function useEntries() {
     lockApp,
   }
 }
+

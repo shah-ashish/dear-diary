@@ -17,6 +17,7 @@ import { importAllEntries } from '../utils/importDiary'
 import { FONTS } from '../utils/fonts'
 import { THEMES } from '../utils/theme'
 import PinSetupModal from './PinSetupModal'
+import { APP_VERSION } from '../utils/version'
 
 export default function SettingsScreen({
   showDelete,
@@ -501,7 +502,7 @@ export default function SettingsScreen({
       {/* ── Footer ── */}
       <div className="shrink-0 px-5 py-6 text-center border-t border-paper-line/20 bg-paper/50">
         <p className="font-serif text-[10px] text-ink-faint">
-          {diaryName || 'Dear Diary'} — v2.0.0
+          {diaryName || 'Dear Diary'} — v{APP_VERSION}
         </p>
         <p className="font-serif text-[10px] text-ink-faint mt-0.5">
           All data stays on your device. No cloud. No accounts.

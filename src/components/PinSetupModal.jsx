@@ -171,7 +171,7 @@ export default function PinSetupModal({ onSave, onCancel }) {
               Security Question
             </h2>
             <p className="font-serif text-xs text-ink-light text-center mt-1 mb-4">
-              Used to recover your PIN if you forget it
+              Used to reset your PIN if you forget it
             </p>
 
             <label className="font-serif text-xs text-ink-light font-bold mb-1">

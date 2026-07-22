@@ -37,6 +37,8 @@ export default function App() {
     themeMode,
     lockEnabled,
     isLocked,
+    storageError,
+    clearStorageError,
     refreshEntryPreviews,
     loadEntry,
     loadTodayEntry,
@@ -252,6 +254,19 @@ export default function App() {
           onConfirm={handleDeleteConfirm}
           onCancel={handleDeleteCancel}
         />
+      )}
+
+      {/* ── Storage Error Toast Banner ── */}
+      {storageError && (
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 max-w-sm w-[90%] bg-red-800 text-white p-3 rounded-xl shadow-lg border border-red-600 flex items-center justify-between animate-fade-in">
+          <p className="font-serif text-xs font-semibold">{storageError}</p>
+          <button
+            onClick={clearStorageError}
+            className="ml-3 text-white/80 hover:text-white font-bold text-xs bg-transparent border-none cursor-pointer"
+          >
+            ✕
+          </button>
+        </div>
       )}
 
       {/* ── Passcode Lock Overlay ── */}

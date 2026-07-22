@@ -9,7 +9,7 @@ A personal, offline-only diary app with a warm notebook & typewriter aesthetic. 
 ## ✨ Features
 
 - **Daily Entries** — One entry per calendar date, written on paginated 1200-character pages
-- **Passcode Lock & Security** — 4-digit PIN lock with background auto-lock, Security Question recovery, and Master Reset
+- **Passcode Screen Lock** — 4-digit PIN screen lock (UI access restriction with salted SHA-256 hash), background auto-lock, Security Question reset flow, and Master Reset
 - **Ruled Paper Editor** — Notebook paper editor with lined rules, red margin line, and page-turn transitions
 - **Free Page Navigation** — Add new pages anytime while writing without waiting for character limits
 - **Custom Diary Title** — Rename your diary from Settings (e.g. "My Journal")

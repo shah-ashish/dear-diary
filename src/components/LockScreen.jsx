@@ -164,8 +164,11 @@ export default function LockScreen({ onUnlock, diaryName }) {
           <h2 className="font-serif text-sm font-bold text-ink text-center mb-1">
             Security Question
           </h2>
-          <p className="font-serif text-xs text-ink-light text-center mb-4 italic">
+          <p className="font-serif text-xs text-ink-light text-center mb-2 italic">
             "{securityQuestion}"
+          </p>
+          <p className="font-serif text-[11px] text-ink-faint text-center mb-4 leading-tight">
+            Verifying your answer will reset and disable the passcode lock.
           </p>
 
           <input
@@ -191,7 +194,7 @@ export default function LockScreen({ onUnlock, diaryName }) {
                 'linear-gradient(135deg, #C9A96E 0%, #A07D3A 50%, #8B6914 100%)',
             }}
           >
-            Verify & Unlock
+            Reset Lock & Unlock
           </button>
 
           <div className="flex justify-between w-full mt-2">
@@ -219,7 +222,7 @@ export default function LockScreen({ onUnlock, diaryName }) {
       {/* Footer Branding */}
       <div className="pb-4 text-center">
         <p className="font-serif text-[10px] text-ink-faint">
-          Protected with Passcode Lock
+          Protected with Screen Lock
         </p>
       </div>
 

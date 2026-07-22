@@ -1,20 +1,31 @@
 /**
  * security.js — Passcode lock & cryptographic verification helpers
  *
- * Uses Web Crypto API (SHA-256) for offline, secure hashing of PINs
+ * Uses Web Crypto API (SHA-256 + salt) for secure hashing of PINs
  * and security answers stored in SQLite settings.
  */
 
 import { getSetting, setSetting } from '../db/storage'
 
 /**
- * Generate a SHA-256 hex hash of a string using Web Crypto API.
+ * Generate a random 16-byte hex salt string.
+ * @returns {string}
+ */
+export function generateSalt() {
+  const arr = new Uint8Array(16)
+  crypto.getRandomValues(arr)
+  return Array.from(arr).map((b) => b.toString(16).padStart(2, '0')).join('')
+}
+
+/**
+ * Generate a SHA-256 hex hash of a string, optionally salted, using Web Crypto API.
  * @param {string} text
+ * @param {string} [salt='']
  * @returns {Promise<string>}
  */
-export async function hashString(text) {
+export async function hashString(text, salt = '') {
   const encoder = new TextEncoder()
-  const data = encoder.encode(text)
+  const data = encoder.encode(salt ? `${salt}:${text}` : text)
   const hashBuffer = await crypto.subtle.digest('SHA-256', data)
   const hashArray = Array.from(new Uint8Array(hashBuffer))
   return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('')
@@ -29,17 +40,19 @@ export async function isLockEnabled() {
 }
 
 /**
- * Save new lock configuration (PIN + Security Question/Answer).
+ * Save new lock configuration (PIN + Security Question/Answer) with per-lock salt.
  * @param {string} pin - 4-digit numeric string
  * @param {string} question - Security question text
  * @param {string} answer - Security answer text
  * @returns {Promise<void>}
  */
 export async function setLockConfig(pin, question, answer) {
-  const pinHash = await hashString(pin)
+  const salt = generateSalt()
+  const pinHash = await hashString(pin, salt)
   const normalizedAnswer = answer.trim().toLowerCase()
-  const answerHash = await hashString(normalizedAnswer)
+  const answerHash = await hashString(normalizedAnswer, salt)
 
+  await setSetting('lock_salt', salt)
   await setSetting('lock_pin_hash', pinHash)
   await setSetting('lock_question', question.trim())
   await setSetting('lock_answer_hash', answerHash)
@@ -47,15 +60,23 @@ export async function setLockConfig(pin, question, answer) {
 }
 
 /**
- * Verify an entered 4-digit PIN against stored hash.
+ * Verify an entered 4-digit PIN against stored hash (salted or legacy unsalted).
  * @param {string} pin
  * @returns {Promise<boolean>}
  */
 export async function verifyPin(pin) {
   const storedHash = await getSetting('lock_pin_hash', '')
   if (!storedHash) return false
-  const inputHash = await hashString(pin)
-  return inputHash === storedHash
+  const salt = await getSetting('lock_salt', '')
+  const inputHash = await hashString(pin, salt)
+
+  if (inputHash === storedHash) return true
+  // Legacy unsalted fallback
+  if (salt) {
+    const legacyHash = await hashString(pin, '')
+    return legacyHash === storedHash
+  }
+  return false
 }
 
 /**
@@ -74,9 +95,17 @@ export async function getSecurityQuestion() {
 export async function verifySecurityAnswer(answer) {
   const storedHash = await getSetting('lock_answer_hash', '')
   if (!storedHash) return false
+  const salt = await getSetting('lock_salt', '')
   const normalizedInput = answer.trim().toLowerCase()
-  const inputHash = await hashString(normalizedInput)
-  return inputHash === storedHash
+  const inputHash = await hashString(normalizedInput, salt)
+
+  if (inputHash === storedHash) return true
+  // Legacy unsalted fallback
+  if (salt) {
+    const legacyHash = await hashString(normalizedInput, '')
+    return legacyHash === storedHash
+  }
+  return false
 }
 
 /**
@@ -88,4 +117,6 @@ export async function removeLockConfig() {
   await setSetting('lock_pin_hash', '')
   await setSetting('lock_question', '')
   await setSetting('lock_answer_hash', '')
+  await setSetting('lock_salt', '')
 }
+

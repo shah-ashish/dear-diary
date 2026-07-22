@@ -1,7 +1,7 @@
 /**
  * exportDiary.js — Export diary entries to device storage or zip download
  *
- * On Android (Capacitor): writes .txt files to Documents/DearDiary/<date>/page_N.txt
+ * On Android (Capacitor): writes .txt files to ExternalStorage/DearDiary/<date>/page_N.txt
  * On Web (browser): creates a .zip file and triggers browser download
  *
  * Incremental: skips files that already exist on Android.
@@ -40,11 +40,18 @@ export async function exportAllEntries(onProgress = () => {}) {
   if (platform === 'web') {
     return await exportAsZip(allEntries, total, onProgress)
   } else {
+    if (typeof Filesystem.requestPermissions === 'function') {
+      try {
+        await Filesystem.requestPermissions()
+      } catch (err) {
+        console.warn('Storage permission request failed:', err)
+      }
+    }
     return await exportToFilesystem(allEntries, total, onProgress)
   }
 }
 
-// ─── Android: Write to Documents/DearDiary/ ──────────────────────
+// ─── Android: Write to ExternalStorage/DearDiary/ ──────────────────
 
 async function exportToFilesystem(allEntries, total, onProgress) {
   let exported = 0
@@ -75,7 +82,7 @@ async function exportToFilesystem(allEntries, total, onProgress) {
     await Filesystem.writeFile({
       path: filePath,
       data: fileContent,
-      directory: Directory.Documents,
+      directory: Directory.ExternalStorage,
       encoding: Encoding.UTF8,
     })
 
@@ -137,7 +144,7 @@ async function mkdirSafe(path) {
   try {
     await Filesystem.mkdir({
       path,
-      directory: Directory.Documents,
+      directory: Directory.ExternalStorage,
       recursive: true,
     })
   } catch (e) {
@@ -155,10 +162,11 @@ async function fileExists(path) {
   try {
     await Filesystem.stat({
       path,
-      directory: Directory.Documents,
+      directory: Directory.ExternalStorage,
     })
     return true
   } catch {
     return false
   }
 }
+

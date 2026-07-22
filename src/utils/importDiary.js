@@ -1,7 +1,7 @@
 /**
  * importDiary.js — Import/restore diary entries from device storage or uploaded files
  *
- * Reads .txt files from Documents/DearDiary/<date>/page_N.txt (Android)
+ * Reads .txt files from ExternalStorage/DearDiary/<date>/page_N.txt (Android)
  * or uploaded files/zip (Web), and inserts missing pages into SQLite database.
  */
 
@@ -24,11 +24,18 @@ export async function importAllEntries(onProgress = () => {}, webFiles = null) {
   if (platform === 'web') {
     return await importFromWebFiles(webFiles, onProgress)
   } else {
+    if (typeof Filesystem.requestPermissions === 'function') {
+      try {
+        await Filesystem.requestPermissions()
+      } catch (err) {
+        console.warn('Storage permission request failed:', err)
+      }
+    }
     return await importFromFilesystem(onProgress)
   }
 }
 
-// ─── Android: Read from Documents/DearDiary/ ────────────────────
+// ─── Android: Read from ExternalStorage/DearDiary/ ────────────────────
 
 async function importFromFilesystem(onProgress) {
   let imported = 0
@@ -40,7 +47,7 @@ async function importFromFilesystem(onProgress) {
   try {
     const rootRes = await Filesystem.readdir({
       path: EXPORT_FOLDER,
-      directory: Directory.Documents,
+      directory: Directory.ExternalStorage,
     })
 
     const dateFolders = (rootRes.files || []).filter(
@@ -61,7 +68,7 @@ async function importFromFilesystem(onProgress) {
       try {
         const pagesRes = await Filesystem.readdir({
           path: `${EXPORT_FOLDER}/${dateStr}`,
-          directory: Directory.Documents,
+          directory: Directory.ExternalStorage,
         })
 
         const pageFiles = (pagesRes.files || []).filter((f) =>
@@ -94,7 +101,7 @@ async function importFromFilesystem(onProgress) {
       } else {
         const fileRes = await Filesystem.readFile({
           path: task.path,
-          directory: Directory.Documents,
+          directory: Directory.ExternalStorage,
           encoding: Encoding.UTF8,
         })
 
@@ -226,3 +233,4 @@ function extractPageContent(raw) {
   }
   return raw
 }
+

@@ -8,4 +8,8 @@ export default defineConfig({
   optimizeDeps: {
     exclude: ['jeep-sqlite/loader', 'sql.js'],
   },
+  test: {
+    environment: 'node',
+    globals: true,
+  },
 })

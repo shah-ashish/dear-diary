@@ -128,6 +128,7 @@ export async function savePage(dateStr, pageNumber, content, wordCount) {
     await saveDatabaseToStore()
   } catch (err) {
     console.error('Error in savePage:', err)
+    throw err
   }
 }
 
@@ -168,6 +169,7 @@ export async function saveAllPages(dateStr, pages) {
     await saveDatabaseToStore()
   } catch (err) {
     console.error('Error in saveAllPages:', err)
+    throw err
   }
 }
 
@@ -183,6 +185,7 @@ export async function deleteEntry(dateStr) {
     await saveDatabaseToStore()
   } catch (err) {
     console.error('Error in deleteEntry:', err)
+    throw err
   }
 }
 
@@ -225,5 +228,6 @@ export async function setSetting(key, value) {
     await saveDatabaseToStore()
   } catch (err) {
     console.error('Error in setSetting:', err)
+    throw err
   }
 }
