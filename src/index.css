@@ -8,9 +8,20 @@
   --color-paper: #F4EEE0;
   --color-paper-dark: #E8DFD0;
   --color-paper-line: #D4CBBA;
-  --color-ink: #22314F;
-  --color-ink-light: rgba(34, 49, 79, 0.4);
-  --color-ink-faint: rgba(34, 49, 79, 0.13);
+  
+  /* Ink Colors - Light Mode Defaults */
+  --color-ink-navy: #22314F;
+  --color-ink-charcoal: #1C1C1E;
+  --color-ink-forest: #1A332B;
+  --color-ink-burgundy: #5C1C1C;
+  --color-ink-sepia: #5C4033;
+
+  /* Active Ink */
+  --color-ink: var(--color-ink-navy);
+  
+  --color-ink-light: color-mix(in srgb, var(--color-ink) 40%, transparent);
+  --color-ink-faint: color-mix(in srgb, var(--color-ink) 13%, transparent);
+  
   --color-accent: #B5443A;
   --color-accent-light: rgba(181, 68, 58, 0.2);
   --color-accent-dark: #943830;
@@ -22,14 +33,41 @@
   --color-paper: #1A1B26;
   --color-paper-dark: #242538;
   --color-paper-line: #3B3E5B;
-  --color-ink: #E0E2EE;
-  --color-ink-light: rgba(224, 226, 238, 0.45);
-  --color-ink-faint: rgba(224, 226, 238, 0.15);
+  
+  /* Ink Colors - Dark Mode Defaults */
+  --color-ink-navy: #E0E2EE;
+  --color-ink-charcoal: #F2F2F7;
+  --color-ink-forest: #B8E0D2;
+  --color-ink-burgundy: #F5B7B1;
+  --color-ink-sepia: #E5D3C3;
+
+  --color-ink: var(--color-ink-navy);
+  
+  --color-ink-light: color-mix(in srgb, var(--color-ink) 45%, transparent);
+  --color-ink-faint: color-mix(in srgb, var(--color-ink) 15%, transparent);
+  
   --color-accent: #E06C60;
   --color-accent-light: rgba(224, 108, 96, 0.2);
   --color-accent-dark: #C04C40;
   --color-locked: #707590;
   --color-overlay: rgba(16, 17, 26, 0.6);
+}
+
+/* Ink color mappings */
+[data-ink="navy"] {
+  --color-ink: var(--color-ink-navy);
+}
+[data-ink="charcoal"] {
+  --color-ink: var(--color-ink-charcoal);
+}
+[data-ink="forest"] {
+  --color-ink: var(--color-ink-forest);
+}
+[data-ink="burgundy"] {
+  --color-ink: var(--color-ink-burgundy);
+}
+[data-ink="sepia"] {
+  --color-ink: var(--color-ink-sepia);
 }
 
 @theme {

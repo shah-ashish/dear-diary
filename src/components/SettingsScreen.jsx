@@ -18,6 +18,7 @@ import { FONTS } from '../utils/fonts'
 import { THEMES } from '../utils/theme'
 import PinSetupModal from './PinSetupModal'
 import { APP_VERSION } from '../utils/version'
+import { INK_COLORS } from '../utils/ink'
 
 export default function SettingsScreen({
   showDelete,
@@ -28,6 +29,8 @@ export default function SettingsScreen({
   onUpdateWritingFont,
   themeMode,
   onUpdateThemeMode,
+  inkColor,
+  onUpdateInkColor,
   onEntriesImported,
   lockEnabled,
   onEnableLock,
@@ -226,6 +229,33 @@ export default function SettingsScreen({
                 >
                   <span>{theme.icon}</span>
                   <span>{theme.name}</span>
+                </button>
+              )
+            })}
+          </div>
+        </div>
+
+        <div className="border-b border-paper-line/60" />
+
+        {/* ── 3. Writing Ink ── */}
+        <div>
+          <p className="font-serif text-xs uppercase tracking-wider text-ink-light font-bold mb-2">
+            Writing Ink
+          </p>
+          <div className="flex items-center gap-3.5 p-3.5 rounded-xl bg-paper-dark/40 border border-paper-line/50 w-fit">
+            {INK_COLORS.map((ink) => {
+              const isActive = inkColor === ink.id
+              return (
+                <button
+                  key={ink.id}
+                  onClick={() => onUpdateInkColor(ink.id)}
+                  title={ink.name}
+                  className={`
+                    w-8 h-8 rounded-full border-2 cursor-pointer transition-all flex items-center justify-center
+                    ${isActive ? 'border-accent scale-110 shadow-md' : 'border-paper-line/60 hover:scale-105'}
+                  `}
+                >
+                  <span className={`w-5 h-5 rounded-full ${ink.class}`} />
                 </button>
               )
             })}

@@ -98,14 +98,7 @@ export default function ReadOnlyViewer({ date, pages, onBack, writingFont }) {
           }}
         />
 
-        {/* Ink stamp indicator (locked overlay) */}
-        {isLastPage && (
-          <div className="absolute right-8 bottom-24 z-10 pointer-events-none">
-            <div className="ink-stamp px-4 py-1.5 text-xs rounded-sm tracking-wider select-none">
-              Archived
-            </div>
-          </div>
-        )}
+
 
         {/* Content display */}
         <div className={`transition-all duration-200 ${transitioning ? 'opacity-0' : 'opacity-100'} ${animationClass}`}>

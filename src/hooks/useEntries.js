@@ -22,6 +22,7 @@ import { countChars } from '../utils/words'
 import { applyTheme } from '../utils/theme'
 import { FONTS, loadFont } from '../utils/fonts'
 import { isLockEnabled, setLockConfig, removeLockConfig } from '../utils/security'
+import { applyInkColor } from '../utils/ink'
 
 export default function useEntries() {
   // List of all dates that have entries (newest first)
@@ -38,6 +39,7 @@ export default function useEntries() {
   const [diaryName, setDiaryName] = useState('Dear Diary')
   const [writingFont, setWritingFont] = useState('special-elite')
   const [themeMode, setThemeMode] = useState('light')
+  const [inkColor, setInkColor] = useState('navy')
 
   // Passcode Lock State
   const [lockEnabled, setLockEnabled] = useState(false)
@@ -80,6 +82,10 @@ export default function useEntries() {
       const theme = await getSetting('themeMode', 'light')
       setThemeMode(theme)
       applyTheme(theme)
+
+      const ink = await getSetting('inkColor', 'navy')
+      setInkColor(ink)
+      applyInkColor(ink)
 
       // Passcode lock initialization
       const locked = await isLockEnabled()
@@ -226,6 +232,17 @@ export default function useEntries() {
     }
   }, [])
 
+  const updateInkColor = useCallback(async (colorId) => {
+    try {
+      await setSetting('inkColor', colorId)
+      setInkColor(colorId)
+      applyInkColor(colorId)
+    } catch (err) {
+      console.error('Failed to update ink color:', err)
+      setStorageError('Failed to save ink color setting.')
+    }
+  }, [])
+
   // ─── Passcode Lock Actions ──────────────────────────────────
 
   const enableLock = useCallback(async (pin, question, answer) => {
@@ -270,6 +287,7 @@ export default function useEntries() {
     diaryName,
     writingFont,
     themeMode,
+    inkColor,
     lockEnabled,
     isLocked,
     storageError,
@@ -287,6 +305,7 @@ export default function useEntries() {
     updateDiaryName,
     updateWritingFont,
     updateThemeMode,
+    updateInkColor,
     enableLock,
     disableLock,
     unlockApp,

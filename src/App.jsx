@@ -35,6 +35,7 @@ export default function App() {
     diaryName,
     writingFont,
     themeMode,
+    inkColor,
     lockEnabled,
     isLocked,
     storageError,
@@ -48,6 +49,7 @@ export default function App() {
     updateDiaryName,
     updateWritingFont,
     updateThemeMode,
+    updateInkColor,
     enableLock,
     disableLock,
     unlockApp,
@@ -222,6 +224,8 @@ export default function App() {
                 onUpdateWritingFont={updateWritingFont}
                 themeMode={themeMode}
                 onUpdateThemeMode={updateThemeMode}
+                inkColor={inkColor}
+                onUpdateInkColor={updateInkColor}
                 onEntriesImported={refreshEntryPreviews}
                 lockEnabled={lockEnabled}
                 onEnableLock={enableLock}
